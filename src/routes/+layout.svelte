@@ -40,7 +40,7 @@
 			</DropdownMenu.Trigger>
 			<DropdownMenu.Content class="w-56">
 				<DropdownMenu.Group>
-					<DropdownMenu.Item class="cursor-pointer">Dashboard</DropdownMenu.Item>
+					<DropdownMenu.Item class="cursor-pointer" href="/dashboard">Dashboard</DropdownMenu.Item>
 				</DropdownMenu.Group>
 				<DropdownMenu.Separator />
 				<DropdownMenu.Group>
