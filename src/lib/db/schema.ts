@@ -1,4 +1,5 @@
-import { boolean, integer, pgTable, primaryKey, text, timestamp } from 'drizzle-orm/pg-core';
+import { relations } from 'drizzle-orm';
+import { boolean, index, integer, pgTable, primaryKey, text, timestamp } from 'drizzle-orm/pg-core';
 
 export const users = pgTable('user', {
 	id: text('id')
@@ -9,6 +10,51 @@ export const users = pgTable('user', {
 	emailVerified: timestamp('emailVerified', { mode: 'date' }),
 	image: text('image')
 });
+
+export const usersRelations = relations(users, ({ many }) => ({
+	usersToRooms: many(usersToRooms)
+}));
+
+export const rooms = pgTable('room', {
+	id: text('id')
+		.primaryKey()
+		.$defaultFn(() => crypto.randomUUID()),
+	name: text('name').notNull(),
+	type: text('type').notNull(),
+	ownerId: text('ownerId')
+		.notNull()
+		.references(() => users.id, { onDelete: 'cascade' })
+});
+
+export const roomsRelations = relations(rooms, ({ many }) => ({
+	usersToRooms: many(usersToRooms)
+}));
+
+export const usersToRooms = pgTable(
+	'users_to_rooms',
+	{
+		userId: text('user_id').notNull(),
+		roomId: text('room_id').notNull()
+	},
+	(t) => ({
+		compoundKey: primaryKey({
+			columns: [t.userId, t.roomId]
+		})
+	})
+);
+
+export const usersToRoomsRelations = relations(usersToRooms, ({ one }) => ({
+	room: one(rooms, {
+		fields: [usersToRooms.roomId],
+		references: [rooms.id]
+	}),
+	user: one(users, {
+		fields: [usersToRooms.userId],
+		references: [users.id]
+	})
+}));
+
+// Auth stuff
 
 export const accounts = pgTable(
 	'account',
@@ -72,6 +118,7 @@ export const authenticators = pgTable(
 	},
 	(authenticator) => ({
 		compositePK: primaryKey({
+			name: 'authenticator_userid_credentialid_pk',
 			columns: [authenticator.userId, authenticator.credentialID]
 		})
 	})
